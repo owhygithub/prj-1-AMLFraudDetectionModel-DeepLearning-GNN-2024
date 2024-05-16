@@ -1,0 +1,67 @@
+Understanding issacchan26's code on AMLDetectionWithGNN: https://github.com/issacchan26/AntiMoneyLaunderingDetectionWithGNN/blob/main/anti-money-laundering-detection-with-gnn.ipynb
+
+1. Datasets: https://github.com/issacchan26/AntiMoneyLaunderingDetectionWithGNN/blob/main/dataset.py 
+2. Model: https://github.com/issacchan26/AntiMoneyLaunderingDetectionWithGNN/blob/main/model.py 
+3. Training: https://github.com/issacchan26/AntiMoneyLaunderingDetectionWithGNN/blob/main/train.py 
+
+1. DATASETS
+
+a/ data visualization
+- Loading "HI-Small_Trans.csv" file
+- checking type of inputs
+- checking if there are any null values.
+- 2 columns which are mostly the same, are they equal tho?
+
+b/ data preprocessing
+- created functions for preprocessing in one go
+- no one-hot encoding was used --> labeled as numeric
+- created accounts with single number (BIN + Account number)
+- Node Features:
+    - average paid and received amount as feature (one-hot encoded directly into currency features)
+- Edge Features:
+    - As usual
+
+2. Model Architecture:
+
+- GAT Convolutional Model --> attention model
+    - utilizes masked self-attentional layers
+    - Arbitrary graphs are problematic as they aren't always interconnected fully and rigid
+    - GCN --> computes new node features based on input features and graph structure
+        - often calculated as the aggregation of neighborhood features
+        - activation function + **weighting factor of neighboring node to current node N**
+
+    -  So why use GAT?
+        - Self-learning and determination of weighting factor --> **not an aggregation but attention mechanism diverts "attention" to the most important neighbors** --> dynamically weight factors for connections
+        - more efficient --> computation & storage
+        - fixed n. of params
+        - localised
+        - specification of weights for different neighbors
+
+- Class GAT():
+    - edge attributes can be found
+
+- AMLtoGRAPH()
+    - preprocessing / get accounts / aggregations / edges retrieval / get node attributes / process all
+    - this part is largely finished from my side
+
+
+3. Data fed to the system:
+
+- Data( node features [4188, 7], **edge index [2, 4999]**, edge features [4999, 6], y labels [4188] ) 
+- what is edge index?
+    - size 2 tensor --> FROM [0] --> TO [0] etc... until 4999
+    - Showing each edge and the corresponding account numbers
+        - What are we doing then?
+            - created a mapping of all nodes and see if they are connected
+
+    - DIFFERENCE:
+        - edge index is has only 2 factors
+        - INDEXING is BASED ON number of EDGES
+        - LABELS are BASED ON number of NODES
+
+
+## PROBLEMS ##
+
+- There seems to be a problem where the adjacency matrix doesn't match the number of edges
+    - due to the fact that there are edges that go to the same nodes multiple times (unique only)
+    - # FIX ^^
