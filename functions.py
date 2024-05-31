@@ -18,6 +18,19 @@ from torch_geometric.loader import DataLoader
 from torch_geometric.utils import negative_sampling, train_test_split_edges
 
 
+def split_dataframe(df):
+    timestamp_column = df.columns[0]  # Assuming Timestamp is the first column
+    payment_columns = [col for col in df.columns if 'payment' in col]
+
+    # Select columns for the first DataFrame
+    first_df = df[[timestamp_column] + payment_columns]
+
+    # Select columns for the second DataFrame
+    second_df = df.drop(columns=[timestamp_column] + payment_columns)
+
+    return first_df, second_df
+
+
 def get_nodes(data):
     merged_accounts = pd.concat([data['Account'], data['Account.1']])
     merged_banks = pd.concat([data['From Bank'], data['To Bank']])
@@ -30,6 +43,7 @@ def get_nodes(data):
     unique_accounts = merged_df.drop_duplicates(subset=['Accounts']).reset_index(drop=True)
     return unique_accounts
 
+
 def one_hot_encoding(unique_accounts, column):
     # Convert non-numeric columns
     positions = unique_accounts[column].str.split(",", expand=True) # creating new columns by splitting receiving currency --> all are added
@@ -40,7 +54,8 @@ def one_hot_encoding(unique_accounts, column):
     table.drop([column, "first_position"], axis=1, inplace=True) # drop the axiliary columns
     return table
 
-def normalize(table, new_min=0, new_max=10):
+
+def normalize(table, new_min=0, new_max=1):
     # Check if the input table has only one column
     if len(table.columns) == 1:
         normalized_df = ((table - table.min()) / (table.max() - table.min())) * (new_max - new_min) + new_min
@@ -50,6 +65,7 @@ def normalize(table, new_min=0, new_max=10):
         column_index = 0
         # Iterate through each column in the table
         for column in table.columns:
+            # print(column_index)
             column_data = table[column]
             if column_index == 0:
                 # Normalize the first column
@@ -60,6 +76,11 @@ def normalize(table, new_min=0, new_max=10):
                 normalized_df[f'col_{column_index}'] = normalized_column
             column_index += 1
         return normalized_df
+
+
+def normalize_value(value, min_val, max_val, new_min=0, new_max=1):
+    normal_value = ((value - min_val) / (max_val - min_val)) * (new_max - new_min) + new_min
+    return normal_value
 
 
 def hashing_vectorization(strings, vector_size=9):
@@ -77,11 +98,13 @@ def hashing_vectorization(strings, vector_size=9):
         vectors.append(vector)
     return vectors
 
+
 def get_longest_string_in_list(lst):
     res = max(lst, key=len)
     res_len = len(res)
     print(f"Longest String is  - {res} w/ length - {res_len}")
     return res, res_len
+
 
 def make_binary_fixed_length(binary_lists, res):
     new_binary_list = []
@@ -93,6 +116,7 @@ def make_binary_fixed_length(binary_lists, res):
         else:
             new_binary_list.append(x)
     return new_binary_list
+
 
 def count_unused_decimals(number):
     # Convert number to string to iterate through digits
@@ -113,6 +137,7 @@ def count_unused_decimals(number):
 
     return num_str, count
 
+
 def split_into_vectors(table):
     lists = []
     for binary in table:
@@ -126,6 +151,7 @@ def split_into_vectors(table):
                 decimal_repr.append(bit)
         lists.append(decimal_repr)
     return lists
+
 
 def encode_payment_amount(df_col, max_len, min_len):
     new_payment_list = []
@@ -148,6 +174,7 @@ def encode_payment_amount(df_col, max_len, min_len):
             new_payment_list.append(x)
         x.remove('.')
     return new_payment_list
+
 
 def create_graph(edge_connections, edges_amount, limit=None):
     graph = nx.Graph()
@@ -177,6 +204,7 @@ class AMLDataPreprocessing:
         self.adjacency_matrix = None
         self.edge_index = None
         self.input_data = None
+
 
     def process_data(self):
         # BASICS
@@ -249,7 +277,6 @@ class AMLDataPreprocessing:
         new_min, count = count_unused_decimals(minimum)
         min_len = min_len - count
         number_columns = max_len + min_len
-        number_columns
         a = split_into_vectors(edges_amount) # INEFFICIENT !!!! # INEFFICIENT !!!!# INEFFICIENT !!!!# INEFFICIENT !!!!# INEFFICIENT !!!!
         new_payment_list = encode_payment_amount(a, max_len, min_len) # INEFFICIENT !!!! # INEFFICIENT !!!!# INEFFICIENT !!!!# INEFFICIENT !!!!# INEFFICIENT !!!!
         new_payment_list = nested_list_int = [[int(item) for item in sublist] for sublist in new_payment_list]
@@ -261,14 +288,16 @@ class AMLDataPreprocessing:
         edges_features["first_position"] = positions[0] # first currency in each row is extracted --> actual currency used and that we want as TRUE
         edges_features = pd.concat([edges_features, pd.get_dummies(edges_features["first_position"],dtype='int')], axis=1, join='inner') # effectively adds actual currency to dummy variables/columns
         edges_features.drop(["Amount Paid","Payment Currency", "first_position"], axis=1, inplace=True) # drop the axiliary columns
-        edges_features.head()
         # DONE convert Payment Format
         positions_2 = edges_features["Payment Format"].str.split(",", expand=True)
         edges_features["second_position"] = positions_2[0]
         edges_features = pd.concat([edges_features, pd.get_dummies(edges_features["second_position"],dtype='int')], axis=1, join='inner') # effectively adds actual currency to dummy variables/columns
         edges_features.drop(["Payment Format", "second_position"], axis=1, inplace=True) # drop the axiliary columns
-        edges_features.head()
-        edges_features["Timestamp"] = pd.to_datetime(edges_features['Timestamp']).astype(int) // 10**9 # does not interpret time well... circular definition for months --> sinus calculations
+        edges_features["Timestamp"] = ((pd.to_datetime(edges_features['Timestamp']).astype(int) // 10**9) - 1661990000) // 10 # does not interpret time well... circular definition for months --> sinus calculations
+        # split for normalization purposes: only time & payments
+        df_requires_normalization, second_df = split_dataframe(edges_features)
+        df_requires_normalization = normalize(df_requires_normalization)
+        edges_features = pd.concat([df_requires_normalization,second_df], axis=1)
         edges_features.head()
         y = edges_features.to_numpy()
 
@@ -276,7 +305,6 @@ class AMLDataPreprocessing:
         graph_full = create_graph(links, edges_amount)
 
         adjacency_matrix = nx.adjacency_matrix(graph_full)
-        adjacency_matrix
 
         accounts = unique_accounts.reset_index(drop=True)
         accounts['ID'] = accounts.index
@@ -301,7 +329,7 @@ class AMLDataPreprocessing:
             y=labels
         )
 
-        with open("graph_data.pickle", "wb") as f:
+        with open("graph.pickle", "wb") as f:
             pickle.dump({
                 'edges_features': edges_features,
                 'links': links,
