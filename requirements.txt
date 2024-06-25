@@ -1,0 +1,11 @@
+torch
+pandas
+networkx
+matplotlib
+torch_geometric
+optuna
+scikit-learn
+seaborn
+numpy
+torch_scatter
+torch_sparse==0.6.9
