@@ -1,0 +1,45 @@
+# --- Data -------------------------------------------------------------------
+# The IBM synthetic AML transaction files and anything derived from them stay
+# out of version control. See README.md for where to download them.
+data/
+*.csv
+*.csv.gz
+*.parquet
+!results/runs.csv
+
+# Cached graphs, checkpoints and prediction tensors
+artifacts/
+*.pt
+*.pth
+*.pickle
+*.pkl
+*.npz
+
+# --- Local scratch ----------------------------------------------------------
+# Papers, the thesis proposal, superseded scripts and archived notebooks: kept
+# on disk, deliberately not published.
+_local/
+
+# --- Python -----------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+build/
+dist/
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+
+# --- Tooling & OS -----------------------------------------------------------
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Optuna study databases
+*.db
+*.sqlite3
