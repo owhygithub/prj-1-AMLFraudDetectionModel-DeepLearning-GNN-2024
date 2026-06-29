@@ -1,11 +1,13 @@
-torch
-pandas
-networkx
-matplotlib
-torch_geometric
-optuna
-scikit-learn
-seaborn
-numpy
-torch_scatter
-torch_sparse==0.6.9
+# Core
+torch>=2.0
+numpy>=1.24
+pandas>=2.0
+scipy>=1.10
+scikit-learn>=1.3
+
+# Graph construction + plotting
+networkx>=3.0
+matplotlib>=3.7
+
+# Hyper-parameter search (only needed for `--tune`)
+optuna>=3.4
