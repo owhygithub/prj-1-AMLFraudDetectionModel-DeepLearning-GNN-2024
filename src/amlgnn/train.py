@@ -165,7 +165,7 @@ def train_once(
                 log.debug("early stop at epoch %d", epoch)
                 break
 
-    if best_report is None:  # pragma: no cover - only if epochs == 0
+    if best_report is None:  # pragma: no cover, only reachable if epochs == 0
         raise RuntimeError("training produced no epochs; check config.epochs")
 
     model.load_state_dict(best_state)
@@ -362,7 +362,7 @@ def save_loss_curve(result: TrainResult, path: str | Path) -> Path:
     fig, ax = plt.subplots(figsize=(7, 4.5))
     ax.plot(epochs, result.train_losses, label="training loss")
     ax.plot(epochs, result.val_losses, label="validation loss")
-    ax.set(xlabel="epoch", ylabel="BCE loss", title=f"{result.config.name} — loss")
+    ax.set(xlabel="epoch", ylabel="BCE loss", title=f"{result.config.name} loss")
     ax.legend()
     ax.grid(alpha=0.3)
     fig.tight_layout()

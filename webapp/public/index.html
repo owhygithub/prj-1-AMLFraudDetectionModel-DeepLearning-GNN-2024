@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>AML GNN — catching money laundering in a transaction graph</title>
+    <title>AML GNN, catching money laundering in a transaction graph</title>
     <meta
       name="description"
       content="An interactive demo of a graph neural network that classifies bank transactions as money laundering. The model runs in your browser."
@@ -22,22 +22,22 @@
         <div class="masthead-text">
           <h1>Catching money laundering in a transaction graph</h1>
           <p>
-            Accounts are nodes, transactions are edges. A graph neural network embeds both, then scores every
+            Accounts are nodes and transactions are edges. A graph neural network embeds both, then scores every
             transaction as a <em>(sender, transaction, receiver)</em> triple. Pick a transaction below and watch
             the model decide.
           </p>
         </div>
         <div class="masthead-facts">
-          <div class="fact"><span id="fact-accounts">—</span><label>accounts</label></div>
-          <div class="fact"><span id="fact-transactions">—</span><label>transactions</label></div>
-          <div class="fact"><span id="fact-runtime">—</span><label>ms to score all six</label></div>
+          <div class="fact"><span id="fact-accounts">...</span><label>accounts</label></div>
+          <div class="fact"><span id="fact-transactions">...</span><label>transactions</label></div>
+          <div class="fact"><span id="fact-runtime">...</span><label>ms to score all six</label></div>
         </div>
       </header>
 
       <div class="notice">
         Everything here runs client-side: the weight matrices and the graph are downloaded once, and the forward
         pass is plain JavaScript. There is no server scoring anything.
-        <strong>The data is synthetic</strong> — see “About the data” at the bottom.
+        <strong>The data is synthetic.</strong> See "About the data" at the bottom.
       </div>
 
       <section class="controls" aria-label="Model controls">
@@ -126,14 +126,14 @@
             <a href="https://www.kaggle.com/datasets/ealtman2019/ibm-transactions-for-anti-money-laundering-aml"
               >IBM synthetic AML dataset</a
             >, which is far too large to ship to a browser. This demo is trained on a smaller generated dataset
-            that plants the same four laundering shapes the real data is built from — <strong>fan-out</strong>
+            that plants the same four laundering shapes the real data is built from: <strong>fan-out</strong>
             (structuring a sum out to many mules), <strong>fan-in</strong> (consolidating it back),
-            <strong>cycles</strong> (round-tripping), and <strong>chains</strong> (layering it forward) — each
-            firing in a tight time window.
+            <strong>cycles</strong> (round-tripping), and <strong>chains</strong> (layering it forward). Each
+            fires in a tight time window.
           </p>
           <p>
-            So the numbers on this page are not the numbers in the paper, and they are easier: planted patterns
-            are cleaner than real laundering. What is real is the model, the arithmetic and the weights. See
+            So the numbers on this page are not the numbers in the paper, and they are easier, because planted
+            patterns are cleaner than real laundering. The model, the arithmetic and the weights are real. See
             <a href="https://github.com/owhygithub/prj-1-AMLFraudDetectionModel-DeepLearning-GNN-2024/blob/main/RESULTS.md"
               >RESULTS.md</a
             >

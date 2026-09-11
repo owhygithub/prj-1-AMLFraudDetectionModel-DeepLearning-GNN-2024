@@ -23,7 +23,7 @@ const raw = read("public/data/graph.json");
 const models = read("public/data/models.json");
 const referencePath = path.join(here, "public/data/reference-scores.json");
 if (!fs.existsSync(referencePath)) {
-  console.error("missing reference-scores.json - run `python webapp/reference_scores.py` first");
+  console.error("missing reference-scores.json. Run `python webapp/reference_scores.py` first.");
   process.exit(2);
 }
 const reference = JSON.parse(fs.readFileSync(referencePath, "utf8"));

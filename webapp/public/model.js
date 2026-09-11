@@ -1,8 +1,8 @@
 /**
  * The AML GNN forward pass, in the browser.
  *
- * This is not a re-implementation of something approximate — it is the same
- * arithmetic as `src/amlgnn/models.py`, run on the same learned weights:
+ * The arithmetic is the same as `src/amlgnn/models.py`, run on the same
+ * learned weights, rather than an approximation of it:
  *
  *     Zx = (A @ X) @ W_node          account embeddings
  *     Ze = E @ W_edge                transaction embeddings
@@ -58,7 +58,7 @@ export function sigmoid(value) {
 }
 
 /**
- * `<h, r, t>` — the sum over channels of the three vectors multiplied together.
+ * `<h, r, t>`, the sum over channels of the three vectors multiplied together.
  * Symmetric in head and tail, which is what ComplEx exists to fix.
  */
 export function distmultScore(head, relation, tail, offsetH, offsetR, offsetT, channels) {

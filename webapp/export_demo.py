@@ -142,7 +142,7 @@ def main() -> None:
     if len(transactions) != graph.num_edges:
         raise SystemExit(
             f"{args.transactions} has {len(transactions)} rows but the graph has "
-            f"{graph.num_edges} edges - they must come from the same build"
+            f"{graph.num_edges} edges. They must come from the same build."
         )
     split = split_edges(graph.data.y, seed=args.seed)
     log.info("graph: %d accounts, %d transactions", graph.num_nodes, graph.num_edges)

@@ -3,7 +3,7 @@
  *
  * Loads the exported graph and weights, runs all six variants once on startup,
  * and re-renders from those cached scores. Changing the threshold is pure
- * presentation — no model re-runs — so the slider is instant.
+ * presentation, with no model re-runs, so the slider is instant.
  */
 
 import { runVariant, flatten, scoreSubset } from "./model.js";
@@ -60,7 +60,7 @@ async function boot() {
   }
   const elapsed = performance.now() - started;
 
-  // Prefer the variant with the best exported F1 — it makes the best first impression.
+  // Prefer the variant with the best exported F1, for a better first impression.
   state.activeVariant = state.variants.reduce((best, v) =>
     (v.metrics?.f1 ?? 0) > (best.metrics?.f1 ?? 0) ? v : best,
   );
@@ -305,7 +305,7 @@ function renderInspector() {
         const box = el("div", "triple");
         box.append(
           el("span", "node-pill", accounts[head]),
-          el("span", "arrow", "—"),
+          el("span", "arrow", "→"),
           el("span", "edge-pill", `${money(tx.amount[edge])} · ${tx.format[edge]}`),
           el("span", "arrow", "→"),
           el("span", "node-pill", accounts[tail]),
@@ -325,7 +325,7 @@ function renderInspector() {
       2,
       "Who they bank with",
       `The sender has ${headDegree} transaction${headDegree === 1 ? "" : "s"} on record and the receiver ${tailDegree}. ` +
-        "Each account's embedding is built from its counterparties' features, not just its own — that is the whole point of using a graph.",
+        "Each account's embedding is built from its counterparties' features as well as its own, which is what the graph buys you.",
       wrap(neighbourhoodSvg(edge, head, tail), legend()),
     ),
   );
@@ -356,7 +356,7 @@ function renderInspector() {
       variant.useTime
         ? "This transaction followed the sender's previous one closely enough to score " +
             `${fixed(timeCloseness[edge], 2)} on recency. Bursts of activity are what layering looks like.`
-        : "This variant ignores timing entirely — the raw score goes straight through the sigmoid.",
+        : "This variant ignores timing entirely. The raw score goes straight through the sigmoid.",
       maths,
     ),
   );
@@ -464,8 +464,8 @@ function svgEl(tag, attrs) {
 
 /**
  * One-hop neighbourhood around the selected transaction, laid out with a few
- * iterations of a spring model. Deliberately capped — a hub account can have
- * hundreds of counterparties and the picture stops meaning anything.
+ * iterations of a spring model. Deliberately capped, because a hub account can
+ * have hundreds of counterparties and the picture stops meaning anything.
  */
 function neighbourhoodSvg(edge, head, tail) {
   const { edgeIndex, label, incident } = state.graph;
@@ -620,7 +620,7 @@ function verdict(edge, probability, isFraud) {
   if (flagged && isFraud) outcome = ["hit", "Correctly caught. This one is laundering and the model flagged it."];
   else if (!flagged && !isFraud) outcome = ["hit", "Correctly cleared. Nothing to investigate here."];
   else if (flagged && !isFraud)
-    outcome = ["alarm", "False alarm. A clean transaction sent for review — the cost of a lower threshold."];
+    outcome = ["alarm", "False alarm. A clean transaction sent for review, which is the cost of a lower threshold."];
   else outcome = ["miss", "Missed. This is laundering and the model let it through."];
 
   const banner = el("div", `outcome ${outcome[0]}`, outcome[1]);
@@ -663,12 +663,12 @@ function renderComparison() {
     if (flaggedCount === state.variants.length) {
       note.textContent = `All six flag this one. It is ${isFraud ? "indeed laundering" : "actually clean, so all six are wrong together"}.`;
     } else if (flaggedCount === 0) {
-      note.textContent = `None of the six flag it. It is ${isFraud ? "laundering, so every variant missed it" : "clean — all six agree correctly"}.`;
+      note.textContent = `None of the six flag it. It is ${isFraud ? "laundering, so every variant missed it" : "clean, so all six agree correctly"}.`;
     } else {
       const hint =
         state.filter === "disputed"
           ? " Nudge the threshold and watch which ones change their mind."
-          : " Disagreement like this is where the threshold matters most — try the “Variants disagree” filter.";
+          : ' Disagreement like this is where the threshold matters most. Try the "Variants disagree" filter.';
       note.textContent =
         `${flaggedCount} of ${state.variants.length} flag this transaction, ${state.variants.length - flaggedCount} clear it. ` +
         `It is actually ${isFraud ? "laundering" : "clean"}.${hint}`;
@@ -727,7 +727,7 @@ boot().catch((error) => {
     el(
       "p",
       null,
-      "If you are running this locally, serve the folder over HTTP — fetch() will not read files from disk. Try: python3 -m http.server --directory webapp/public",
+      "If you are running this locally, serve the folder over HTTP. fetch() will not read files from disk. Try: python3 -m http.server --directory webapp/public",
     ),
   );
 });

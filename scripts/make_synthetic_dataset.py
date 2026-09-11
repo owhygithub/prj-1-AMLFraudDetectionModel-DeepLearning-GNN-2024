@@ -16,9 +16,9 @@ model variants something to find that the plain ones cannot see.
 
 It also plants *decoys*: payroll runs, merchant settlement and supply-chain
 payments have the same burst-of-activity shape but are perfectly legitimate.
-Without them the task is trivial - "many transfers at once" separates the
-classes on its own, every model saturates at p = 1.0, and there is nothing
-interesting left to compare. The decoys are what create borderline cases.
+Without them the task is trivial. "Many transfers at once" separates the
+classes on its own, every model saturates at p = 1.0, and nothing interesting
+is left to compare. The decoys are what create borderline cases.
 
 This is NOT the IBM dataset. It exists so the pipeline and the web demo can be
 run end to end without a 1.5 GB download, and so that anything trained on it
@@ -104,8 +104,8 @@ def _background(builder: _Builder, rows: int) -> None:
 def _fan_out(builder: _Builder, hub: int, mules: np.ndarray, start: int, laundering: bool = True) -> None:
     """Structuring: a lump sum broken into many sub-threshold transfers.
 
-    The legitimate version of this shape is a payroll run - same fan, but the
-    amounts are salary-like rather than pressed up against a reporting
+    The legitimate version of this shape is a payroll run. Same fan, but the
+    amounts look like salaries rather than being pressed up against a reporting
     threshold, and they go out on a schedule rather than in a rush.
     """
     rng = builder.rng
@@ -146,7 +146,7 @@ def _cycle(builder: _Builder, ring: np.ndarray, start: int) -> None:
 def _chain(builder: _Builder, line: np.ndarray, start: int, laundering: bool = True) -> None:
     """Layering: value pushed forward through a line of intermediaries.
 
-    The legitimate version is a supply chain - the same forward motion, but the
+    The legitimate version is a supply chain. Same forward motion, but the
     value is not preserved hop to hop and the hops are days apart.
     """
     rng = builder.rng
