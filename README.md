@@ -140,17 +140,21 @@ python scripts/train.py --graph data/graph.pt --decoder complex --use-time --lea
 python scripts/train.py --graph data/graph.pt --decoder complex --use-time --tune --trials 32
 ```
 
-Each run writes a checkpoint to `artifacts/`, a text log to `results/runs/<variant>/`,
-figures to `results/figures/<variant>/`, and one row to `results/runs.csv`.
+Each run writes a checkpoint to `artifacts/`, a text log to `output/runs/<variant>/`,
+figures to `output/figures/<variant>/`, and one row to `output/runs.csv`. All of
+that is gitignored — `results/` is the committed record of the 2024 experiments
+and nothing overwrites it.
 
 ### 4. Summarise
 
 ```bash
-python scripts/aggregate_results.py --markdown
+python scripts/aggregate_results.py --runs-csv output/runs.csv --markdown
 ```
 
+Without `--runs-csv` it summarises the committed 2024 results instead.
+
 Paths can be redirected with `AMLGNN_DATA_DIR`, `AMLGNN_ARTIFACT_DIR` and
-`AMLGNN_RESULTS_DIR` — useful on a cluster with a separate scratch filesystem.
+`AMLGNN_OUTPUT_DIR` — useful on a cluster with a separate scratch filesystem.
 
 ---
 
@@ -166,7 +170,8 @@ src/amlgnn/
   train.py           training loop, k-fold CV, Optuna search, run logging
 scripts/             command-line entry points
 notebooks/           the original exploratory notebooks (outputs stripped)
-results/             runs.csv, per-run logs and figures from the 2024 experiments
+results/             the 2024 experiment record: runs.csv, run logs, figures
+output/              where your own runs land (gitignored)
 tests/               synthetic data generator for end-to-end smoke runs
 docs/images/         architecture sketch and a sample transaction graph
 ```

@@ -9,6 +9,9 @@ data/
 
 # Cached graphs, checkpoints and prediction tensors
 artifacts/
+
+# Output of your own runs. results/ is the committed 2024 record and is kept.
+output/
 *.pt
 *.pth
 *.pickle

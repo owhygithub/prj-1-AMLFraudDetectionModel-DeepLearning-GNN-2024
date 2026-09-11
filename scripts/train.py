@@ -21,7 +21,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 import torch
 
 from amlgnn.cli import setup_logging
-from amlgnn.config import ARTIFACT_DIR, DATA_DIR, RESULTS_DIR, RUNS_CSV, ensure_dirs
+from amlgnn.config import ARTIFACT_DIR, DATA_DIR, OUTPUT_DIR, RUNS_CSV, ensure_dirs
 from amlgnn.data import split_edges
 from amlgnn.metrics import save_figures
 from amlgnn.preprocessing import TransactionGraph
@@ -72,7 +72,12 @@ def parse_args() -> argparse.Namespace:
     )
 
     parser.add_argument("--seed", type=int, default=42)
-    parser.add_argument("--results-dir", type=Path, default=RESULTS_DIR)
+    parser.add_argument(
+        "--output-dir",
+        type=Path,
+        default=OUTPUT_DIR,
+        help="where run logs and figures go; results/ is the committed 2024 record",
+    )
     parser.add_argument("--artifact-dir", type=Path, default=ARTIFACT_DIR)
     parser.add_argument("--no-figures", action="store_true")
     parser.add_argument("-v", "--verbose", action="store_true")
@@ -133,11 +138,11 @@ def main() -> None:
     )
     log.info("saved checkpoint %s", checkpoint)
 
-    run_path, runs_csv = log_run(result, args.results_dir, Path(args.results_dir) / RUNS_CSV.name)
+    run_path, runs_csv = log_run(result, args.output_dir, Path(args.output_dir) / RUNS_CSV.name)
     log.info("logged %s and appended to %s", run_path, runs_csv)
 
     if not args.no_figures and result.test_scores is not None:
-        figure_dir = Path(args.results_dir) / "figures" / config.name
+        figure_dir = Path(args.output_dir) / "figures" / config.name
         for path in save_figures(result.test_scores, result.test_labels, figure_dir):
             log.info("wrote %s", path)
         log.info("wrote %s", save_loss_curve(result, figure_dir / "validation-losses.png"))

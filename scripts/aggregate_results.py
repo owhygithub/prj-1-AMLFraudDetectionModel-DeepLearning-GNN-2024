@@ -1,7 +1,11 @@
 #!/usr/bin/env python3
-"""Summarise results/runs.csv into the table used by RESULTS.md.
+"""Summarise a runs.csv into a Markdown table.
+
+Defaults to the committed 2024 record that RESULTS.md reports on. Point it at
+``output/runs.csv`` to summarise runs you have made yourself.
 
     python scripts/aggregate_results.py --since 20240625153000 --markdown
+    python scripts/aggregate_results.py --runs-csv output/runs.csv --markdown
 """
 
 from __future__ import annotations
@@ -14,7 +18,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 import pandas as pd
 
-from amlgnn.config import RUNS_CSV
+from amlgnn.config import ARCHIVED_RUNS_CSV
 
 METRICS = ["Accuracy", "Precision", "Recall", "F1 Score", "ROC-AUC", "Loss"]
 ORDER = ["DisMult", "DisMult-T", "DisMult-T+W", "ComplEx", "ComplEx-T", "ComplEx-T+W",
@@ -43,7 +47,7 @@ def to_markdown(summary: pd.DataFrame) -> str:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("--runs-csv", type=Path, default=RUNS_CSV)
+    parser.add_argument("--runs-csv", type=Path, default=ARCHIVED_RUNS_CSV)
     parser.add_argument("--since", type=int, default=None, help="keep runs with Timestamp >= this")
     parser.add_argument("--markdown", action="store_true", help="print a Markdown table")
     args = parser.parse_args()

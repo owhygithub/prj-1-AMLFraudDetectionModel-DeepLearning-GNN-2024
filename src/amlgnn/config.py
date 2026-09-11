@@ -6,7 +6,11 @@ runs did through absolute hard-coded absolute cluster paths.
 
     AMLGNN_DATA_DIR      raw + prepared CSVs and cached graph artefacts
     AMLGNN_ARTIFACT_DIR  trained model checkpoints
-    AMLGNN_RESULTS_DIR   run logs, figures and the aggregate runs.csv
+    AMLGNN_OUTPUT_DIR    run logs, figures and the aggregate runs.csv
+
+New runs write to ``output/``, not to ``results/``. ``results/`` holds the
+committed record of the 2024 experiments that RESULTS.md reports on, and
+nothing should overwrite it.
 """
 
 from __future__ import annotations
@@ -23,9 +27,13 @@ def _dir(env_var: str, default: Path) -> Path:
 
 DATA_DIR = _dir("AMLGNN_DATA_DIR", PROJECT_ROOT / "data")
 ARTIFACT_DIR = _dir("AMLGNN_ARTIFACT_DIR", PROJECT_ROOT / "artifacts")
-RESULTS_DIR = _dir("AMLGNN_RESULTS_DIR", PROJECT_ROOT / "results")
+OUTPUT_DIR = _dir("AMLGNN_OUTPUT_DIR", PROJECT_ROOT / "output")
 
-RUNS_CSV = RESULTS_DIR / "runs.csv"
+RUNS_CSV = OUTPUT_DIR / "runs.csv"
+
+#: The committed 2024 experiment record. Read-only; see RESULTS.md.
+ARCHIVED_RESULTS_DIR = PROJECT_ROOT / "results"
+ARCHIVED_RUNS_CSV = ARCHIVED_RESULTS_DIR / "runs.csv"
 
 #: Columns the IBM synthetic AML transaction CSV is expected to have.
 REQUIRED_COLUMNS = (
@@ -45,5 +53,5 @@ REQUIRED_COLUMNS = (
 
 def ensure_dirs() -> None:
     """Create the output directories if they do not exist yet."""
-    for path in (DATA_DIR, ARTIFACT_DIR, RESULTS_DIR):
+    for path in (DATA_DIR, ARTIFACT_DIR, OUTPUT_DIR):
         path.mkdir(parents=True, exist_ok=True)
