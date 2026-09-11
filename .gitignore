@@ -1,17 +1,23 @@
 # --- Data -------------------------------------------------------------------
 # The IBM synthetic AML transaction files and anything derived from them stay
 # out of version control. See README.md for where to download them.
-data/
+# Leading slash matters: a bare `data/` would also swallow webapp/public/data,
+# which holds the demo bundle the deployed site needs.
+/data/
 *.csv
 *.csv.gz
 *.parquet
 !results/runs.csv
 
 # Cached graphs, checkpoints and prediction tensors
-artifacts/
+/artifacts/
 
 # Output of your own runs. results/ is the committed 2024 record and is kept.
-output/
+/output/
+
+# Regenerate with `python webapp/reference_scores.py`; only needed to run
+# `node webapp/verify_model.mjs`.
+webapp/public/data/reference-scores.json
 *.pt
 *.pth
 *.pickle
@@ -39,6 +45,7 @@ dist/
 
 # --- Tooling & OS -----------------------------------------------------------
 .vscode/
+.claude/
 .idea/
 .DS_Store
 Thumbs.db

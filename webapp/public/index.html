@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AML GNN — catching money laundering in a transaction graph</title>
+    <meta
+      name="description"
+      content="An interactive demo of a graph neural network that classifies bank transactions as money laundering. The model runs in your browser."
+    />
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='26' font-size='26'>🕸️</text></svg>" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div id="loading" class="loading">
+      <div class="spinner" aria-hidden="true"></div>
+      <p>Loading the graph and running six models…</p>
+    </div>
+
+    <div id="app" hidden>
+      <header class="masthead">
+        <div class="masthead-text">
+          <h1>Catching money laundering in a transaction graph</h1>
+          <p>
+            Accounts are nodes, transactions are edges. A graph neural network embeds both, then scores every
+            transaction as a <em>(sender, transaction, receiver)</em> triple. Pick a transaction below and watch
+            the model decide.
+          </p>
+        </div>
+        <div class="masthead-facts">
+          <div class="fact"><span id="fact-accounts">—</span><label>accounts</label></div>
+          <div class="fact"><span id="fact-transactions">—</span><label>transactions</label></div>
+          <div class="fact"><span id="fact-runtime">—</span><label>ms to score all six</label></div>
+        </div>
+      </header>
+
+      <div class="notice">
+        Everything here runs client-side: the weight matrices and the graph are downloaded once, and the forward
+        pass is plain JavaScript. There is no server scoring anything.
+        <strong>The data is synthetic</strong> — see “About the data” at the bottom.
+      </div>
+
+      <section class="controls" aria-label="Model controls">
+        <div class="control">
+          <label for="variant-list">Model variant</label>
+          <div id="variant-list" class="chips" role="radiogroup" aria-label="Model variant"></div>
+        </div>
+        <div class="control control-threshold">
+          <label for="threshold">
+            Decision threshold <output id="threshold-value" for="threshold">0.50</output>
+          </label>
+          <input id="threshold" type="range" min="0.02" max="0.98" step="0.01" value="0.5" />
+          <p class="hint">Flag a transaction when the model's probability clears this line.</p>
+        </div>
+      </section>
+
+      <main class="layout">
+        <section class="panel panel-list" aria-labelledby="list-heading">
+          <div class="panel-head">
+            <h2 id="list-heading">Transactions</h2>
+            <div id="filters" class="filters" role="tablist" aria-label="Filter transactions"></div>
+          </div>
+          <div class="table-scroll">
+            <table class="tx-table">
+              <thead>
+                <tr>
+                  <th scope="col">From → To</th>
+                  <th scope="col" class="num">Amount</th>
+                  <th scope="col">Method</th>
+                  <th scope="col" class="num">P(laundering)</th>
+                </tr>
+              </thead>
+              <tbody id="tx-body"></tbody>
+            </table>
+            <p id="tx-empty" class="empty" hidden>No transactions match this filter at the current threshold.</p>
+          </div>
+          <p id="tx-count" class="panel-foot"></p>
+        </section>
+
+        <section class="panel panel-inspect" aria-labelledby="inspect-heading">
+          <div class="panel-head">
+            <h2 id="inspect-heading">Inside the model</h2>
+            <span id="inspect-variant" class="tag"></span>
+          </div>
+          <div id="inspect" class="inspect"></div>
+        </section>
+      </main>
+
+      <section class="panel" aria-labelledby="compare-heading">
+        <div class="panel-head">
+          <h2 id="compare-heading">All six variants, same transaction</h2>
+        </div>
+        <div class="compare-grid">
+          <div>
+            <h3 class="sub">What each one makes of it</h3>
+            <div id="variant-bars" class="variant-bars"></div>
+            <p id="variant-agreement" class="agreement"></p>
+          </div>
+          <div>
+            <h3 class="sub">Held-out test set, at the current threshold</h3>
+            <div class="table-scroll table-scroll-short">
+              <table class="metrics-table">
+                <thead>
+                  <tr>
+                    <th scope="col">Variant</th>
+                    <th scope="col" class="num">Precision</th>
+                    <th scope="col" class="num">Recall</th>
+                    <th scope="col" class="num">F1</th>
+                    <th scope="col" class="num">Caught</th>
+                    <th scope="col" class="num">Missed</th>
+                    <th scope="col" class="num">False alarms</th>
+                  </tr>
+                </thead>
+                <tbody id="metrics-body"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel" aria-labelledby="about-heading">
+        <div class="panel-head"><h2 id="about-heading">About the data</h2></div>
+        <div class="about">
+          <p>
+            The published experiments used the
+            <a href="https://www.kaggle.com/datasets/ealtman2019/ibm-transactions-for-anti-money-laundering-aml"
+              >IBM synthetic AML dataset</a
+            >, which is far too large to ship to a browser. This demo is trained on a smaller generated dataset
+            that plants the same four laundering shapes the real data is built from — <strong>fan-out</strong>
+            (structuring a sum out to many mules), <strong>fan-in</strong> (consolidating it back),
+            <strong>cycles</strong> (round-tripping), and <strong>chains</strong> (layering it forward) — each
+            firing in a tight time window.
+          </p>
+          <p>
+            So the numbers on this page are not the numbers in the paper, and they are easier: planted patterns
+            are cleaner than real laundering. What is real is the model, the arithmetic and the weights. See
+            <a href="https://github.com/owhygithub/prj-1-AMLFraudDetectionModel-DeepLearning-GNN-2024/blob/main/RESULTS.md"
+              >RESULTS.md</a
+            >
+            for the actual experiments, including the defects found in the original code.
+          </p>
+        </div>
+      </section>
+
+      <footer class="footer">
+        <span>Oskar Wang · MIT licensed</span>
+        <a href="https://github.com/owhygithub/prj-1-AMLFraudDetectionModel-DeepLearning-GNN-2024">Source on GitHub</a>
+      </footer>
+    </div>
+
+    <script type="module" src="app.js"></script>
+  </body>
+</html>

@@ -10,6 +10,10 @@ Six variants are compared: two decoders (**DistMult**, **ComplEx**), each with
 and without a signal for how quickly a transaction follows the sender's
 previous one. Results are in **[RESULTS.md](RESULTS.md)**.
 
+There is also an **[interactive demo](webapp/)** that runs the trained model in
+the browser — pick a transaction, watch it get scored, and compare the six
+variants on the same case.
+
 Dataset: the [IBM Synthetic AML transaction data](https://www.kaggle.com/datasets/ealtman2019/ibm-transactions-for-anti-money-laundering-aml).
 It is not distributed with this repository — see [Getting the data](#1-get-the-data).
 
@@ -110,11 +114,14 @@ Download `HI-Small_Trans.csv` (or `HI-Large_Trans.csv`) from the
 and put it in `data/`. The directory is gitignored — no transaction data is
 ever committed.
 
-No download handy? Generate a schema-compatible fake file to exercise the
-pipeline (the numbers it produces are meaningless, only the plumbing is real):
+No download handy? Generate a stand-in with the same schema. It is not the IBM
+data, but it is not noise either: it plants the four laundering shapes the real
+dataset is built from (fan-out, fan-in, cycles, chains) alongside legitimate
+structures with the same silhouette, so a model trained on it learns real graph
+structure.
 
 ```bash
-python tests/make_synthetic_csv.py --rows 20000 --out data/synthetic.csv
+python scripts/make_synthetic_dataset.py --out data/synthetic.csv
 ```
 
 ### 2. Balance and build the graph
@@ -169,10 +176,10 @@ src/amlgnn/
   metrics.py         evaluation and figures
   train.py           training loop, k-fold CV, Optuna search, run logging
 scripts/             command-line entry points
+webapp/              the interactive demo — static site, model runs in-browser
 notebooks/           the original exploratory notebooks (outputs stripped)
 results/             the 2024 experiment record: runs.csv, run logs, figures
 output/              where your own runs land (gitignored)
-tests/               synthetic data generator for end-to-end smoke runs
 docs/images/         architecture sketch and a sample transaction graph
 ```
 
