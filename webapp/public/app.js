@@ -404,8 +404,8 @@ function channelChart(nodeEmbedding, edgeEmbedding, head, tail, edge, channels, 
 
 /**
  * Per-channel contribution to the raw score. For DistMult that is literally
- * h·r·t per channel; for ComplEx the four real/imaginary terms are summed into
- * the channel pair they came from, so the chart still adds up to the score.
+ * h·r·t per channel. For ComplEx the four real and imaginary terms are summed
+ * into the channel pair they came from, so the chart still adds up to the score.
  */
 function channelContributions(nodeEmbedding, edgeEmbedding, head, tail, edge, channels, variant) {
   const h = head * channels;

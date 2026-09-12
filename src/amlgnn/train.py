@@ -175,7 +175,7 @@ def train_once(
 def cross_validate(
     graph: TransactionGraph, config: TrainConfig, split: EdgeSplit
 ) -> TrainResult:
-    """K-fold CV **inside the training split**; the test edges never enter a fold.
+    """K-fold CV inside the training split. The test edges never enter a fold.
 
     The original scripts ran ``KFold`` over every edge in the graph and then
     reported on the held-out test mask, so each fold trained on a fifth of the

@@ -42,7 +42,7 @@ VARIANT_ORDER = ["DistMult", "DistMult-T", "DistMult-T+W", "ComplEx", "ComplEx-T
 
 
 def _round(array: np.ndarray | torch.Tensor, decimals: int) -> list:
-    """Round to keep the JSON small; 4 dp is far below the model's noise floor."""
+    """Round to keep the JSON small. 4 dp is far below the model's noise floor."""
     values = array.detach().cpu().numpy() if isinstance(array, torch.Tensor) else np.asarray(array)
     return np.round(values.astype(float), decimals).tolist()
 

@@ -82,7 +82,7 @@ def amount_layout(amounts: pd.Series, max_fraction_digits: int = 2) -> tuple[int
 
 
 def minmax_normalize(frame: pd.DataFrame) -> pd.DataFrame:
-    """Scale every column to [0, 1]; constant columns collapse to 0."""
+    """Scale every column to [0, 1]. Constant columns collapse to 0."""
     values = frame.astype(float)
     span = values.max() - values.min()
     scaled = (values - values.min()).div(span.replace(0, np.nan), axis=1)

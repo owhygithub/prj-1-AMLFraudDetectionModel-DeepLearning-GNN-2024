@@ -41,7 +41,7 @@ const graph = {
   timeCloseness: Float32Array.from(raw.timeCloseness),
 };
 
-// float32 arithmetic in two runtimes will not agree bit for bit; 1e-4 is far
+// float32 arithmetic in two runtimes will not agree bit for bit. 1e-4 is far
 // tighter than anything that could change a prediction.
 const TOLERANCE = 1e-4;
 let worst = 0;

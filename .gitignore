@@ -24,9 +24,15 @@ webapp/public/data/reference-scores.json
 *.pkl
 *.npz
 
-# --- Local scratch ----------------------------------------------------------
-# Papers, the thesis proposal, superseded scripts and archived notebooks: kept
-# on disk, deliberately not published.
+# --- Internal, not published ------------------------------------------------
+# Developer and deploy notes. The public README is the only one that ships.
+webapp/README.md
+NOTES.md
+TODO.md
+*.internal.md
+
+# Papers, thesis proposal, superseded scripts and archived notebooks. These
+# stay on disk and out of the repo.
 _local/
 
 # --- Python -----------------------------------------------------------------

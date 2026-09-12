@@ -153,7 +153,7 @@ def _chain(builder: _Builder, line: np.ndarray, start: int, laundering: bool = T
     amount = rng.uniform(30_000, 200_000)
     when = start
     for i in range(len(line) - 1):
-        # Laundering passes nearly the whole sum on; a supply chain does not.
+        # Laundering passes nearly the whole sum on. A supply chain does not.
         amount *= rng.uniform(0.90, 0.98) if laundering else rng.uniform(0.25, 0.75)
         when += int(rng.integers(120, 1_800)) if laundering else int(rng.integers(20_000, 90_000))
         builder.add(int(line[i]), int(line[i + 1]), amount, when, laundering)

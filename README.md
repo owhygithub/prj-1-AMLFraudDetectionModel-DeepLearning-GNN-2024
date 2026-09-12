@@ -1,55 +1,53 @@
 # AML Fraud Detection with Graph Neural Networks
 
-A single transaction rarely looks suspicious on its own. The shape of the path
-money takes through a set of accounts often does. This project treats a bank's
-transaction log as a graph, where accounts are nodes and transactions are
-edges, and classifies each transaction as laundering or clean using a graph
-neural network paired with a knowledge graph scoring function.
+One transaction on its own rarely looks suspicious. The path money takes
+through a set of accounts often does.
 
-Six variants are compared: two decoders (**DistMult**, **ComplEx**), each with
-and without a signal for how quickly a transaction follows the sender's
-previous one. Results are in **[RESULTS.md](RESULTS.md)**.
+This project reads a bank transaction log as a graph. Accounts are nodes,
+transactions are edges. A graph neural network learns an embedding for each,
+then scores every transaction as a triple of sender, transaction and receiver
+to decide whether it is laundering.
 
-There is also an **[interactive demo](webapp/)** that runs the trained model in
-the browser. Pick a transaction, watch it get scored, and compare the six
-variants on the same case.
+Six variants are compared. Two decoders, DistMult and ComplEx, each one plain,
+each one scaled by how quickly a transaction follows the sender's previous one,
+and each one with that scale learned. Numbers are in [RESULTS.md](RESULTS.md).
 
-Dataset: the [IBM Synthetic AML transaction data](https://www.kaggle.com/datasets/ealtman2019/ibm-transactions-for-anti-money-laundering-aml).
-It is not distributed with this repository. See [Getting the data](#1-get-the-data).
+There is also an [interactive demo](webapp/) that runs the trained model in
+your browser. Pick a transaction and watch it get scored.
 
-## The pipeline
+## Pipeline
 
 ```mermaid
 flowchart TD
-    subgraph prep["1. Data preparation, prepare_dataset.py"]
+    subgraph prep["1. Prepare"]
         raw["Transaction CSV<br/><i>under 1% laundering</i>"]
-        bal["keep all laundering rows,<br/>down-sample clean ones"]
+        bal["keep all laundering rows,<br/>down-sample the clean ones"]
         raw --> bal
     end
 
-    subgraph build["2. Graph construction, build_graph.py"]
-        nodes["<b>X</b>, node features<br/>currency, bank, account hash"]
-        edges["<b>E</b>, edge features<br/>amount digits, currency,<br/>payment format, timestamp"]
-        adj["<b>A</b>, adjacency<br/>sparse, symmetric"]
-        time["<b>t</b>, time closeness<br/>gap since sender's<br/>last transaction"]
-        labels["<b>y</b>, Is Laundering"]
+    subgraph build["2. Build the graph"]
+        nodes["<b>X</b> node features<br/>currency, bank, account"]
+        edges["<b>E</b> edge features<br/>amount, currency, format, time"]
+        adj["<b>A</b> adjacency"]
+        time["<b>t</b> time closeness"]
+        labels["<b>y</b> Is Laundering"]
     end
 
     bal --> nodes & edges & adj & time & labels
 
-    subgraph enc["3. GNN encoder"]
-        zx["<b>Zx</b> = dropout(A · X · W0)<br/><i>account embeddings</i>"]
-        ze["<b>Ze</b> = dropout(E · W1)<br/><i>transaction embeddings</i>"]
+    subgraph enc["3. Encode"]
+        zx["<b>Zx</b> = dropout(A · X · W0)<br/><i>accounts</i>"]
+        ze["<b>Ze</b> = dropout(E · W1)<br/><i>transactions</i>"]
     end
 
     nodes --> zx
     adj --> zx
     edges --> ze
 
-    subgraph dec["4. Triple decoder"]
-        triple["(head, relation, tail)<br/>= (sender, transaction, receiver)"]
-        score["<b>DistMult</b>: sum of h · r · t<br/><b>ComplEx</b>: real part of h · r · conj(t)"]
-        gate["scale by time closeness<br/><i>the T and T+W variants</i>"]
+    subgraph dec["4. Score the triple"]
+        triple["(sender, transaction, receiver)"]
+        score["<b>DistMult</b> sum of h · r · t<br/><b>ComplEx</b> real part of h · r · conj(t)"]
+        gate["scale by time closeness"]
         triple --> score --> gate
     end
 
@@ -57,9 +55,9 @@ flowchart TD
     ze --> triple
     time -.-> gate
 
-    subgraph output["5. Output"]
-        logit["sigmoid of the score<br/>P(laundering)"]
-        eval["accuracy, precision, recall,<br/>F1, ROC-AUC, avg precision"]
+    subgraph output["5. Decide"]
+        logit["sigmoid<br/>P(laundering)"]
+        eval["accuracy, precision, recall,<br/>F1, ROC-AUC"]
         logit --> eval
     end
 
@@ -74,142 +72,81 @@ flowchart TD
     class logit,eval result
 ```
 
-The original hand drawn architecture sketch covers the same ground in fewer
-boxes:
-
 ![Architecture](docs/images/architecture.png)
 
-### Why a triple decoder
+**Why score a triple.** A transaction is already a triple of sender,
+transaction and receiver. That is the shape DistMult and ComplEx were built
+for, with the transaction features acting as the relation. DistMult is
+symmetric and cannot tell "A paid B" from "B paid A". ComplEx splits each
+embedding into a real and an imaginary half to break that symmetry.
 
-A transaction is naturally a triple: sender, transaction, receiver. That is the
-`(head, relation, tail)` structure DistMult and ComplEx were built to score,
-with the transaction's own features acting as the relation. DistMult is
-symmetric, so it cannot tell "A paid B" from "B paid A". ComplEx splits each
-embedding into real and imaginary halves specifically to break that symmetry,
-which matters when the direction of flow carries the signal.
+**Why time matters.** Laundering tends to come in bursts, because funds get
+moved on rather than left sitting. The time variants multiply the score by a
+value near 1 when a transaction follows close behind the sender's last one, and
+near 0 after a long gap.
 
-### Why time closeness
-
-Laundering tends to be bursty, since funds are moved on rather than left
-sitting. The T variants multiply the triple score by a value in `[0, 1]` that
-sits near 1 when a transaction follows hard on the sender's previous one, and
-near 0 after a long quiet gap. The T+W variants also learn a scale on that
-gate.
-
-## Quickstart
+## Setup
 
 ```bash
-git clone https://github.com/owhygithub/prj-1-AMLFraudDetectionModel-DeepLearning-GNN-2024.git
-cd prj-1-AMLFraudDetectionModel-DeepLearning-GNN-2024
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 1. Get the data
+Download `HI-Small_Trans.csv` from the
+[IBM Synthetic AML dataset](https://www.kaggle.com/datasets/ealtman2019/ibm-transactions-for-anti-money-laundering-aml)
+into `data/`. That folder is gitignored, so no transaction data is committed.
 
-Download `HI-Small_Trans.csv` (or `HI-Large_Trans.csv`) from the
-[Kaggle dataset](https://www.kaggle.com/datasets/ealtman2019/ibm-transactions-for-anti-money-laundering-aml)
-and put it in `data/`. That directory is gitignored, so no transaction data is
-ever committed.
-
-No download handy? Generate a stand-in with the same schema. It is not the IBM
-data, but it is not noise either. It plants the four laundering shapes the real
-dataset is built from (fan-out, fan-in, cycles, chains) alongside legitimate
-structures with the same silhouette, so a model trained on it learns real graph
-structure.
+No dataset handy? Generate a stand-in with the same schema. It plants the four
+laundering shapes the real data is built from, fan-out, fan-in, cycles and
+chains, next to legitimate activity with the same silhouette.
 
 ```bash
 python scripts/make_synthetic_dataset.py --out data/synthetic.csv
 ```
 
-### 2. Balance and build the graph
-
-Laundering is well under 1% of rows in the raw files, so the reported runs
-train on a subset that keeps every laundering transaction and down-samples the
-clean ones.
+## Run
 
 ```bash
 python scripts/prepare_dataset.py data/HI-Small_Trans.csv --out data/balanced.csv --fraud-ratio 0.5
 python scripts/build_graph.py data/balanced.csv --out data/graph.pt
-```
-
-### 3. Train
-
-```bash
-# DistMult, no time signal
-python scripts/train.py --graph data/graph.pt --decoder distmult
-
-# ComplEx with a learned time gate ("ComplEx-T+W")
 python scripts/train.py --graph data/graph.pt --decoder complex --use-time --learn-time-weight
-
-# With an Optuna hyper-parameter search first
-python scripts/train.py --graph data/graph.pt --decoder complex --use-time --tune --trials 32
 ```
 
-Each run writes a checkpoint to `artifacts/`, a text log to
-`output/runs/<variant>/`, figures to `output/figures/<variant>/`, and one row
-to `output/runs.csv`. All of that is gitignored. `results/` holds the committed
-record of the 2024 experiments and nothing overwrites it.
+Add `--tune` for an Optuna search. Drop `--use-time` and `--learn-time-weight`
+for the plain variants.
 
-### 4. Summarise
+Runs write a checkpoint to `artifacts/` and logs and figures to `output/`, both
+gitignored. `results/` holds the 2024 experiment record and is never
+overwritten. Summarise a run with:
 
 ```bash
 python scripts/aggregate_results.py --runs-csv output/runs.csv --markdown
 ```
 
-Without `--runs-csv` it summarises the committed 2024 results instead.
-
-Paths can be redirected with `AMLGNN_DATA_DIR`, `AMLGNN_ARTIFACT_DIR` and
-`AMLGNN_OUTPUT_DIR`, which is useful on a cluster with a separate scratch
-filesystem.
+`AMLGNN_DATA_DIR`, `AMLGNN_ARTIFACT_DIR` and `AMLGNN_OUTPUT_DIR` move those
+paths, which helps on a cluster with separate scratch.
 
 ## Layout
 
 ```
-src/amlgnn/
-  features.py        deterministic feature encoders (currency, amount, account, time)
-  preprocessing.py   CSV to TransactionGraph (X, E, A, y, time closeness)
-  models.py          GNN encoder plus DistMult and ComplEx decoders
-  data.py            stratified train/val/test edge splits
-  metrics.py         evaluation and figures
-  train.py           training loop, k-fold CV, Optuna search, run logging
-scripts/             command line entry points
-webapp/              the interactive demo, a static site running the model in-browser
-notebooks/           the original exploratory notebooks (outputs stripped)
-results/             the 2024 experiment record: runs.csv, run logs, figures
-output/              where your own runs land (gitignored)
-docs/images/         architecture sketch and a sample transaction graph
+src/amlgnn/    features, graph building, models, training, metrics
+scripts/       command line entry points
+webapp/        the browser demo, a static site
+results/       the 2024 experiment record
+docs/images/   diagrams
 ```
-
-A sample of the transaction graph, showing the first 50 transactions and the
-hub structure that makes this a graph problem rather than a tabular one:
 
 ![Transaction graph](docs/images/transaction-graph.png)
 
-## Notes on this version
+## A note on the numbers
 
-This repository was cleaned up in 2026 from the original 2024 thesis code. The
-experiments in [RESULTS.md](RESULTS.md) were produced by the *original* code,
-which contained several defects that this version fixes. The main ones are a
-double sigmoid in the loss, a detached "learnable" weight, and a complex
-decoder whose imaginary part was always zero. Each is documented with its
-likely effect in
-[RESULTS.md, Known defects](RESULTS.md#known-defects-in-the-original-runs).
-**The published numbers have not been regenerated**, so treat them as a record
-of what the original code did rather than a benchmark of what this code does.
-
-The `torch_geometric`, `torch_scatter` and `torch_sparse` dependency stack was
-removed. The layer never actually called PyG's message passing, since it is a
-sparse matrix multiply, and PyG was used only as a data container. The files in
-`notebooks/` still import it and are kept as a historical record rather than a
-working path.
+The experiments in RESULTS.md came from the original 2024 code, which had
+several bugs this version fixes. A double sigmoid in the loss, a learnable
+weight that never trained, and a ComplEx decoder whose imaginary part was
+always zero. Each one is written up in RESULTS.md with what it likely cost.
+The published numbers were not rerun, so read them as a record of what the old
+code did rather than a benchmark of this one.
 
 ## Author
 
-Oskar Wang. Released under the [MIT License](LICENSE).
-
-## References
-
-- Altman et al., *Realistic Synthetic Financial Transactions for Anti-Money Laundering Models* (NeurIPS 2023), the dataset.
-- Yang et al., *Embedding Entities and Relations for Learning and Inference in Knowledge Bases* (ICLR 2015), DistMult.
-- Trouillon et al., *Complex Embeddings for Simple Link Prediction* (ICML 2016), ComplEx.
+Oskar Wang. [MIT License](LICENSE).

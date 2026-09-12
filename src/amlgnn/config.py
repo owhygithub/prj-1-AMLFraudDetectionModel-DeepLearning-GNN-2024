@@ -31,7 +31,7 @@ OUTPUT_DIR = _dir("AMLGNN_OUTPUT_DIR", PROJECT_ROOT / "output")
 
 RUNS_CSV = OUTPUT_DIR / "runs.csv"
 
-#: The committed 2024 experiment record. Read-only; see RESULTS.md.
+#: The committed 2024 experiment record. Read only. See RESULTS.md.
 ARCHIVED_RESULTS_DIR = PROJECT_ROOT / "results"
 ARCHIVED_RUNS_CSV = ARCHIVED_RESULTS_DIR / "runs.csv"
 

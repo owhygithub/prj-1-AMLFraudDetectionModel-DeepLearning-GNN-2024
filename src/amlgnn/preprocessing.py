@@ -80,7 +80,7 @@ class TransactionGraph:
     """Sparse COO account-by-account adjacency used for message passing."""
 
     time_closeness: torch.Tensor
-    """Per-edge recency signal in [0, 1]; see :func:`amlgnn.features.time_closeness`."""
+    """Per-edge recency signal in [0, 1]. See :func:`amlgnn.features.time_closeness`."""
 
     accounts: pd.Series
     """Account identifier for each node index."""
@@ -157,7 +157,7 @@ def build_node_features(nodes: pd.DataFrame) -> pd.DataFrame:
         axis=1,
     )
     # The original inserted a column of random floats as a per-node "unique
-    # ID". It carried no information and made every run differ; dropped.
+    # ID". It carried no information and made every run differ, so it is gone.
     return frame
 
 
